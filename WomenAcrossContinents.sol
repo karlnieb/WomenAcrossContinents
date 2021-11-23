@@ -12,13 +12,13 @@ contract WomenAcrossContinents is ERC721Enumerable, Ownable {
   string baseExtension = ".json";
   string notRevealedUri;
   uint256 cost = .08 ether;
-  uint256 maxSupply = 10000;
-  uint256 maxMintAmount = 20;
-  uint256 public nftPerAddressLimit = 2;
+  uint16 maxSupply = 10000;
+  uint8 maxMintAmount = 20;
+  uint8 public nftPerAddressLimit = 2;
   bool public paused = false;
   bool public revealed = false;
   bool public onlyWhitelisted = true;
-  address[] public whitelistedAddresses;
+  //address[] public whitelistedAddresses;
   mapping(address => uint256) public addressMintedBalance;
 
 
@@ -38,7 +38,7 @@ contract WomenAcrossContinents is ERC721Enumerable, Ownable {
   }
 
   // public
-  function mint(uint256 _mintAmount) public payable {
+  function mint(uint8 _mintAmount) public payable {
     require(!paused, "the contract is paused");
     uint256 supply = totalSupply();
     require(_mintAmount > 0, "need to mint at least 1 NFT");
@@ -47,26 +47,27 @@ contract WomenAcrossContinents is ERC721Enumerable, Ownable {
 
     if (msg.sender != owner()) {
         if(onlyWhitelisted == true) {
-            require(isWhitelisted(msg.sender), "user is not whitelisted");
+            require(isWhitelisted(msg.sender), "user is not whitelisted or has minted the maximum NFTs for the whitelist");
             uint256 ownerMintedCount = addressMintedBalance[msg.sender];
             require(ownerMintedCount + _mintAmount <= nftPerAddressLimit, "max NFT per address exceeded");
         }
         require(msg.value >= cost * _mintAmount, "insufficient funds");
     }
     
-    for (uint256 i = 1; i <= _mintAmount; i++) {
+    for (uint8 i = 1; i <= _mintAmount; i++) {
         addressMintedBalance[msg.sender]++;
         _safeMint(msg.sender, supply + i);
     }
   }
   
   function isWhitelisted(address _user) public view returns (bool) {
-    for (uint i = 0; i < whitelistedAddresses.length; i++) {
+    return addressMintedBalance[_user] > 0;
+    /* for (uint i = 0; i < whitelistedAddresses.length; i++) {
       if (whitelistedAddresses[i] == _user) {
           return true;
       }
     }
-    return false;
+    return false; */
   }
 
   function walletOfOwner(address _owner)
@@ -76,7 +77,7 @@ contract WomenAcrossContinents is ERC721Enumerable, Ownable {
   {
     uint256 ownerTokenCount = balanceOf(_owner);
     uint256[] memory tokenIds = new uint256[](ownerTokenCount);
-    for (uint256 i; i < ownerTokenCount; i++) {
+    for (uint16 i; i < ownerTokenCount; i++) {
       tokenIds[i] = tokenOfOwnerByIndex(_owner, i);
     }
     return tokenIds;
@@ -109,7 +110,7 @@ contract WomenAcrossContinents is ERC721Enumerable, Ownable {
       revealed = true;
   }
   
-  function setNftPerAddressLimit(uint256 _limit) public onlyOwner {
+  function setNftPerAddressLimit(uint8 _limit) public onlyOwner {
     nftPerAddressLimit = _limit;
   }
   
@@ -117,7 +118,7 @@ contract WomenAcrossContinents is ERC721Enumerable, Ownable {
     cost = _newCost;
   }
 
-  function setmaxMintAmount(uint256 _newmaxMintAmount) public onlyOwner {
+  function setmaxMintAmount(uint8 _newmaxMintAmount) public onlyOwner {
     maxMintAmount = _newmaxMintAmount;
   }
 
@@ -142,8 +143,10 @@ contract WomenAcrossContinents is ERC721Enumerable, Ownable {
   }
   
   function whitelistUsers(address[] calldata _users) public onlyOwner {
-    delete whitelistedAddresses;
-    whitelistedAddresses = _users;
+    //delete whitelistedAddresses;
+    for (uint16 i = 0; i < _users.length; i++) {
+        addressMintedBalance[_users[i]] = nftPerAddressLimit;
+    }
   }
  
   function withdraw() public payable onlyOwner {
