@@ -13,8 +13,8 @@ contract WomenAcrossContinents is ERC721Enumerable, Ownable {
   string notRevealedUri;
   uint256 cost = .08 ether;
   uint16 maxSupply = 10000;
-  uint8 maxMintAmount = 20;
-  uint8 public nftPerAddressLimit = 2;
+  uint8 maxMintAmount = 200;
+  uint8 public nftPerAddressLimit = 200;
   bool public paused = false;
   bool public revealed = false;
   bool public onlyWhitelisted = true;
